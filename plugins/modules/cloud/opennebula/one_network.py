@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright: (c) 2021, Jason Juenger <jason.juenger@coxautoinc.com>
+ # Copyright: (c) 2021, Jason Juenger <jasonjuenger@gmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 # Make coding more python3-ish
@@ -125,7 +125,7 @@ class NetworkModule(OpenNebulaModule):
             name=dict(type='str', required=False),
             owner=dict(type='int', required=False),
             group=dict(type='int', required=False),
-            state=dict(type='str', choices=['present', 'absent'], default='present'),
+            state=dict(type='str', choices=['present', 'absent', 'query'], default='present'),
             template=dict(type='str', required=False),
         )
 
@@ -156,6 +156,16 @@ class NetworkModule(OpenNebulaModule):
         template_data = params.get('template')
 
         self.result = {}
+
+        if desired_state == 'query':
+            if id:
+                self.result = self.get_network_info(self.get_network_by_id(id))
+            elif name:
+                self.result = self.get_network_info(self.get_network_by_name(name))
+            else:
+                module.fail_json(msg="Query requires either 'id' or 'name'")
+
+            self.exit()
 
         network = self.get_network_instance(id, name)
         needs_creation = False
